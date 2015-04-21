@@ -27,7 +27,6 @@ Just copy the content of this repository to your webserver and configure it with
 ## Configuration
 
 * add your credentials instead of the placeholders. These credentials are the same you use to login into the kd customer-service-center.
-* generate an UUID [UUID-Generator](https://www.uuidgenerator.net/) and place it into the config without the dashes and in uppercase
 
 ## Run
 
@@ -45,6 +44,10 @@ http://localhost:8000/kd.php?id=386646&link=http%3A%2F%2Fcdn1.iptv.kabel-deutsch
 ```
 
 Once imported into your VLC player, the scripts handle the generation of a licensed stream link and forwards the player automatically to this link.
+
+# TODOs
+
+ * UDID generation
 
 # Explanation
 
