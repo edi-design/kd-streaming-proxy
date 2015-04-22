@@ -35,6 +35,12 @@ class AbstractKabelDeutschland
 	protected $init_object = array('initObj' => null);
 
 	/**
+	 * Logger
+	 * @var Log
+	 */
+	protected $obj_log = null;
+
+	/**
 	 * constructor
 	 *
 	 * @param $arr_config
@@ -46,9 +52,23 @@ class AbstractKabelDeutschland
 		$this->credentials = $arr_config['credentials'];
 		$this->api = $arr_config['api'];
 		$this->methods = $arr_api_config['methods'];
+	}
 
+	/**
+	 * main entry method
+	 */
+	public function run()
+	{
 		// get configuration from server
 		$this->initConfigFromKabelDeutschland();
+	}
+
+	/**
+	 * @param null $obj_log
+	 */
+	public function setObjLog($obj_log)
+	{
+		$this->obj_log = $obj_log;
 	}
 
 	/**
@@ -79,6 +99,7 @@ class AbstractKabelDeutschland
 		);
 
 		$result = curl_exec($ch);
+		$this->obj_log->logResult($url, $result);
 
 		return json_decode($result, true);
 	}
@@ -136,5 +157,7 @@ class AbstractKabelDeutschland
 
 		// set hardcoded values
 		$this->init_object['initObj']['UDID'] = $this->api['udid'];
+
+		$this->obj_log->log('initConfig', json_encode($this->init_object));
 	}
 }

@@ -26,6 +26,10 @@ $arr_config = array(
 		'default_channelid' => 340758,
 		'default_picsize' => '100X100',
 		'default_pagesize' => 1000,
+	),
+	'log' => array(
+		'generic_log' => 'generic.log',
+		'result_log' => 'result.log'
 	)
 );
 

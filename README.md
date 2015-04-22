@@ -43,7 +43,18 @@ http://localhost:8000/kd.php?id=386671&link=http%3A%2F%2Fcdn1.iptv.kabel-deutsch
 http://localhost:8000/kd.php?id=386646&link=http%3A%2F%2Fcdn1.iptv.kabel-deutschland.de%2Flive-spts%2Fmedia%2Fsat1%2Ftransmux%2Fhls.m3u8
 ```
 
+You can also add the url http://localhost:8000/kd.php directly to VLC. This will resolve the playlist automatically.
+
 Once imported into your VLC player, the scripts handle the generation of a licensed stream link and forwards the player automatically to this link.
+
+## Debug
+
+There are three steps of debugging included.
+The simplest one is to call the script with format=txt to get a the textual output of the playlist.
+http://localhost:8000/kd.php?format=txt
+
+The more detailed version works with log_level=debug and writes al lot of data to logs/*.log.
+http://localhost:8000/kd.php?format=txt&log_level=debug
 
 # TODOs
 

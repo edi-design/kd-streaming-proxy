@@ -25,24 +25,17 @@ class KabelDeutschland extends AbstractKabelDeutschland
 	protected $m3u_line = "#EXTINF:-1,%s\n%s\n";
 
 	/**
-	 * constructor
-	 *
-	 * @param $arr_config
-	 * @param $arr_api_config
-	 */
-	public function __construct($arr_config, $arr_api_config)
-	{
-		parent::__construct($arr_config, $arr_api_config);
-		$this->signIn();
-	}
-
-	/**
 	 * main entry point
 	 */
 	public function run()
 	{
-		$arr_params = $_GET;
+		/*
+		 * initial set-up calls
+		 */
+		parent::run();
+		$this->signIn();
 
+		$arr_params = $_GET;
 		if (isset($arr_params['id']) && isset($arr_params['link']))
 		{
 			$this->redirectToStreamUrl($arr_params['id'], $arr_params['link']);
@@ -72,6 +65,8 @@ class KabelDeutschland extends AbstractKabelDeutschland
 
 		$this->init_object['initObj']['SiteGuid'] = $arr_session['SiteGuid'];
 		$this->init_object['initObj']['DomainID'] = $arr_session['DomainID'];
+
+		$this->obj_log->log('signIn', json_encode($this->init_object));
 	}
 
 	/**
@@ -103,6 +98,8 @@ class KabelDeutschland extends AbstractKabelDeutschland
 				);
 			}
 		}
+
+		$this->obj_log->log('channelList', 'Count: '. count($arr_return));
 
 		return $arr_return;
 	}
@@ -140,7 +137,11 @@ class KabelDeutschland extends AbstractKabelDeutschland
 		echo $this->m3u_head;
 		foreach ($arr_channels as $channel)
 		{
-			$link = $self_link . '?id=' . $channel['id'] . '&link=' . urlencode($channel['link']);
+			$link =
+				$self_link . '?id=' . $channel['id'] .
+				'&link=' . urlencode($channel['link']) .
+				'&log_level=' . $this->obj_log->getLogLevel();
+
 			echo sprintf($this->m3u_line, $channel['title'], $link);
 		}
 
@@ -155,6 +156,17 @@ class KabelDeutschland extends AbstractKabelDeutschland
 	private function redirectToStreamUrl($media_file_id, $base_link)
 	{
 		$url = $this->getLicensedLink($media_file_id, $base_link);
+
+		if (empty($url))
+		{
+			$message =
+				"Can't get licensed link for Id: " . $media_file_id .
+				' Link: '.$base_link;
+			echo $message;
+			$this->obj_log->log('licensedLink', $message);
+			return;
+		}
+
 		// send redirect
 		header('Location: '.$url);
 	}
@@ -176,6 +188,8 @@ class KabelDeutschland extends AbstractKabelDeutschland
 		);
 
 		$arr_link = $this->get($url, $arr_params);
+
+		$this->obj_log->log('licensedLink', json_encode(array('params' => $arr_params, 'return' => $arr_link)));
 
 		return $arr_link['mainUrl'];
 	}
