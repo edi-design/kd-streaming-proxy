@@ -37,19 +37,19 @@ Just copy the content of this repository to your webserver and configure it with
 Point your browser to your webserver for example http://localhost:8000/kd.php.
 That call provides you with the download of a playlist file. This m3u-file can opened with vlc and contains the redirect links.
 
-```
-#EXTM3U
-#EXTINF:-1,Das Erste
-http://localhost:8000/kd.php?id=386601&link=http%3A%2F%2Fcdn1.iptv.kabel-deutschland.de%2Flive-spts%2Fmedia%2Fdaserste%2Ftransmux%2Fhls.m3u8
-#EXTINF:-1,ZDF
-http://localhost:8000/kd.php?id=386671&link=http%3A%2F%2Fcdn1.iptv.kabel-deutschland.de%2Flive-spts%2Fmedia%2Fzdf%2Ftransmux%2Fhls.m3u8
-#EXTINF:-1,SAT.1
-http://localhost:8000/kd.php?id=386646&link=http%3A%2F%2Fcdn1.iptv.kabel-deutschland.de%2Flive-spts%2Fmedia%2Fsat1%2Ftransmux%2Fhls.m3u8
-```
-
 You can also add the url http://localhost:8000/kd.php directly to VLC. This will resolve the playlist automatically.
 
 Once imported into your VLC player, the scripts handle the generation of a licensed stream link and forwards the player automatically to this link.
+
+There is a param named `quality` which can be `low` `medium` and `high`. This determines the stream bandwidth.
+Try `http://localhost:8000/kd.php?quality=high` for the highest quality. Medium is the default if no param was given.
+
+This new version now works with Kodi / XBMC (PVR IPTV Plugin) and also the tv-stream-recorder for Synology based NAS-systems.
+
+The first call of the script will take about a minute to generate the playlist. So please be patient. The next time it will be cached for 24 hours.
+To use the cache, you web-server needs to have write acces to the folder `cache`.
+ 
+If you use the script on a Synology NAS the write access will be controlled with the Control-Panel -> Groups. The http group needs read/write access to the web folder.
 
 ## Debug
 

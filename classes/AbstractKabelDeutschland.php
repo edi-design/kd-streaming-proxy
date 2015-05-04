@@ -41,6 +41,14 @@ class AbstractKabelDeutschland
 	protected $obj_log = null;
 
 	/**
+	 * initialized cache file with directory
+	 * @var null
+	 */
+	private $cache_file = null;
+
+	private $cache_file_format = 'playlist_%s.m3u';
+
+	/**
 	 * constructor
 	 *
 	 * @param $arr_config
@@ -52,6 +60,10 @@ class AbstractKabelDeutschland
 		$this->credentials = $arr_config['credentials'];
 		$this->api = $arr_config['api'];
 		$this->methods = $arr_api_config['methods'];
+
+		// init cache
+		$cache_folder = dirname(__FILE__) . '/../cache/';
+		$this->cache_file = $cache_folder . $this->cache_file_format;
 	}
 
 	/**
@@ -159,5 +171,13 @@ class AbstractKabelDeutschland
 		$this->init_object['initObj']['UDID'] = $this->api['udid'];
 
 		$this->obj_log->log('initConfig', json_encode($this->init_object));
+	}
+
+	/**
+	 * @return null
+	 */
+	public function getCacheFile($quality)
+	{
+		return sprintf($this->cache_file, $quality);
 	}
 }

@@ -25,6 +25,22 @@ class KabelDeutschland extends AbstractKabelDeutschland
 	protected $m3u_line = "#EXTINF:-1,%s\n%s\n";
 
 	/**
+	 * contains the qualitity divided playlist file-identifier
+	 * @var array
+	 */
+	protected $arr_quality = array(
+		'low' => 'CCURstream564000.m3u8',
+		'medium' => 'CCURstream1064000.m3u8',
+		'high' => 'CCURstream1664000.m3u8'
+	);
+
+	/**
+	 * lifetime 1 day
+	 * @var int
+	 */
+	protected $cache_lifetime = 86400; // 60s * 60m * 24h = 1day in seconds
+
+	/**
 	 * main entry point
 	 */
 	public function run()
@@ -112,7 +128,9 @@ class KabelDeutschland extends AbstractKabelDeutschland
 	 */
 	private function showChannelList($arr_params, $arr_channels)
 	{
-		$self_link = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+		// quality selection
+		$quality = isset($arr_params['quality']) ? $arr_params['quality'] : 'medium';
+		$playlist = isset($this->arr_quality[$quality]) ? $this->arr_quality[$quality] : $this->arr_quality['medium'];
 
 		// Manage the output format
 		$format = isset($arr_params['format']) ? $arr_params['format'] : 'm3u';
@@ -123,7 +141,7 @@ class KabelDeutschland extends AbstractKabelDeutschland
 				break;
 			case 'm3u':
 			default:
-				$mime_type = 'audio/x-mpequrl';
+				$mime_type = 'application/vnd.apple.mpegurl';
 				break;
 		}
 
@@ -134,17 +152,51 @@ class KabelDeutschland extends AbstractKabelDeutschland
 		header('Cache-Control: no-cache, must-revalidate');
 		header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
 
-		echo $this->m3u_head;
-		foreach ($arr_channels as $channel)
+		// check cache
+		$cached = false;
+		if (file_exists($this->getCacheFile($quality)))
 		{
-			$link =
-				$self_link . '?id=' . $channel['id'] .
-				'&link=' . urlencode($channel['link']) .
-				'&log_level=' . $this->obj_log->getLogLevel();
-
-			echo sprintf($this->m3u_line, $channel['title'], $link);
+			$file_mtime = filemtime($this->getCacheFile($quality));
+			if ((time() - $file_mtime) <= $this->cache_lifetime)
+			{
+				$cached = true;
+			}
 		}
 
+		if ($cached === false)
+		{
+			// re-call licensed links
+			$output = $this->m3u_head;
+			foreach ($arr_channels as $channel) {
+				$link = $this->getLicensedLink($channel['id'], $channel['link']);
+				$link = $this->getRedirectTarget($link);
+
+				// remove given playlist and replace it with direct ts-stream-playlist
+				$link = substr($link, 0, strrpos($link, '/')) . '/' . $playlist;
+
+				$output .= sprintf($this->m3u_line, $channel['title'], $link);
+			}
+
+			// save playlist as cached file
+			file_put_contents($this->getCacheFile($quality), $output);
+		} else {
+			// read from cache
+			$output = file_get_contents($this->getCacheFile($quality));
+		}
+
+		// return the playlist
+		echo $output;
+	}
+
+	/**
+	 * returns the final destination of a redirected link
+	 *
+	 * @param $destination
+	 * @return mixed
+	 */
+	private function getRedirectTarget($destination){
+		$headers = get_headers($destination, 1);
+		return $headers['Location'];
 	}
 
 	/**
