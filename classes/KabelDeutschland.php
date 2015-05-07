@@ -52,15 +52,9 @@ class KabelDeutschland extends AbstractKabelDeutschland
 		$this->signIn();
 
 		$arr_params = $_GET;
-		if (isset($arr_params['id']) && isset($arr_params['link']))
-		{
-			$this->redirectToStreamUrl($arr_params['id'], $arr_params['link']);
-		}
-		else
-		{
-			$arr_channels = $this->getChannelList();
-			$this->showChannelList($arr_params, $arr_channels);
-		}
+
+		$arr_channels = $this->getChannelList();
+		$this->showChannelList($arr_params, $arr_channels);
 	}
 
 	/**
@@ -165,10 +159,20 @@ class KabelDeutschland extends AbstractKabelDeutschland
 
 		if ($cached === false)
 		{
+			$bool_save_to_cache = true;
+
 			// re-call licensed links
 			$output = $this->m3u_head;
 			foreach ($arr_channels as $channel) {
 				$link = $this->getLicensedLink($channel['id'], $channel['link']);
+				if (empty($link))
+				{
+					// can't get licensed link, abort channel-list request
+					$output = "Can't get licensed link, try the golang version from http://freshest.me";
+					$this->obj_log->log('licensedLink', $output);
+					$bool_save_to_cache = false;
+					break;
+				}
 				$link = $this->getRedirectTarget($link);
 
 				// remove given playlist and replace it with direct ts-stream-playlist
@@ -178,7 +182,10 @@ class KabelDeutschland extends AbstractKabelDeutschland
 			}
 
 			// save playlist as cached file
-			file_put_contents($this->getCacheFile($quality), $output);
+			if ($bool_save_to_cache)
+			{
+				file_put_contents($this->getCacheFile($quality), $output);
+			}
 		} else {
 			// read from cache
 			$output = file_get_contents($this->getCacheFile($quality));
@@ -197,30 +204,6 @@ class KabelDeutschland extends AbstractKabelDeutschland
 	private function getRedirectTarget($destination){
 		$headers = get_headers($destination, 1);
 		return $headers['Location'];
-	}
-
-	/**
-	 * gets a licensed stream link and redirects to it
-	 *
-	 * @param $media_file_id
-	 * @param $base_link
-	 */
-	private function redirectToStreamUrl($media_file_id, $base_link)
-	{
-		$url = $this->getLicensedLink($media_file_id, $base_link);
-
-		if (empty($url))
-		{
-			$message =
-				"Can't get licensed link for Id: " . $media_file_id .
-				' Link: '.$base_link;
-			echo $message;
-			$this->obj_log->log('licensedLink', $message);
-			return;
-		}
-
-		// send redirect
-		header('Location: '.$url);
 	}
 
 	/**
