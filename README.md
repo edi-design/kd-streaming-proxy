@@ -8,6 +8,8 @@ That's why i built this script to be able to watch all of the channels on my des
 Beside this script, there is now an even simpler version. You can download the binary from my page [freshest.me/kd](http://freshest.me/simplified-kabeldeutschland-streaming-proxy/).
 This version was build with golang and handles all functions in a simple executable. Mainly the new version was designed for every-day user who do not want to setup their own web-server but simply start the proxy.
 
+The version of the proxy, written in GO, is now also available as open-source on [github/edi-design/kd-go](https://github.com/edi-design/kd-go).
+
 
 ## Requirements
 
