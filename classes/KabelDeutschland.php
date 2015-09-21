@@ -174,6 +174,12 @@ class KabelDeutschland extends AbstractKabelDeutschland
 					break;
 				}
 				$link = $this->getRedirectTarget($link);
+				if (empty($link))
+				{
+					// if redirect does not work, skip channel in list
+					$this->obj_log->log('licensedLink', 'Can not get Channel link from CDN for '. $channel['title']);
+					continue;
+				}
 
 				// remove given playlist and replace it with direct ts-stream-playlist
 				$link = substr($link, 0, strrpos($link, '/')) . '/' . $playlist;
@@ -201,9 +207,22 @@ class KabelDeutschland extends AbstractKabelDeutschland
 	 * @param $destination
 	 * @return mixed
 	 */
-	private function getRedirectTarget($destination){
-		$headers = get_headers($destination, 1);
-		return $headers['Location'];
+	private function getRedirectTarget($destination)
+	{
+		$ch = curl_init($destination);
+		curl_setopt($ch, CURLOPT_HEADER, 1);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		$headers = curl_exec($ch);
+		curl_close($ch);
+
+		// Check if there's a Location: header (redirect)
+		if (preg_match('/^Location: (.+)$/im', $headers, $matches))
+		{
+			return trim($matches[1]);
+		}
+
+		// no redirect means problem with KabelDeutschland CDN
+		return null;
 	}
 
 	/**
